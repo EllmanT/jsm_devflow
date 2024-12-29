@@ -1,7 +1,7 @@
 export default function Home() {
   return (
     <>
-      <h1 className="text-3xl font-black text-white">
+      <h1 className="h1-bold">
         Welcome to DevOverflow the app that is super dope
       </h1>
     </>
