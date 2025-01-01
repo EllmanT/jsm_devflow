@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
+import Navbar from "@/components/navigations/navbar";
+import ThemeProvider from "@/context/Theme";
+
 const inter = localFont({
   src: "./fonts/Inter.ttf",
   variable: "--font-inter",
@@ -18,10 +21,10 @@ export const metadata: Metadata = {
   title: "DevOverflow",
   description:
     "Stack Overflow 2.0, a platform that allows develops to share and collaborate seamlessly",
-  icons:{
-    icon:'/public/images/site-logo.svg'
-  }
-  };
+  icons: {
+    icon: "/public/images/site-logo.svg",
+  },
+};
 
 export default function RootLayout({
   children,
@@ -29,11 +32,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.className} ${spaceGrotesk.variable} antialiased`}
       >
-        {children}
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
+          <Navbar />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );
