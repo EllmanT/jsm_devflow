@@ -1,5 +1,5 @@
 import { auth, signOut } from "@/auth";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/route";
 
 const Home = async () => {
@@ -8,7 +8,7 @@ const Home = async () => {
   return (
     <>
       <h1 className="h2-bold font-space-grotesk">
-        Welcome to DevOverflow the app that is super dope
+        Welcome to DevOverflow 
       </h1>
       <form
         className="px-10 pt-[100px]"
@@ -18,7 +18,7 @@ const Home = async () => {
           await signOut({ redirectTo: ROUTES.SIGN_IN });
         }}
       >
-        <Button type="submit">Log out</Button>
+        {/* <Button type="submit">Log out</Button> */}
       </form>
     </>
   );

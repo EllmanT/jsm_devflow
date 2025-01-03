@@ -34,7 +34,7 @@ const AuthForm = <T extends FieldValues>({
   schema,
   defaultValues,
   formType,
-  onSubmit,
+  //onSubmit,
 }: AuthFormProps<T>) => {
   // 1. Define your form.
   const form = useForm<z.infer<typeof schema>>({
