@@ -1,21 +1,21 @@
 import React, { ReactNode } from "react";
 
-import { LeftSidebar } from "@/components/navigations/left-sidebar/LeftSidebar";
+import LeftSidebar from "@/components/navigations/LeftSidebar";
 import Navbar from "@/components/navigations/navbar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 
 const RootLayout = ({ children }: { children: ReactNode }) => {
   return (
-    <SidebarProvider>
+    <main className="background-light850_dark100 relative">
+      <Navbar />
 
-      <main>
-        <Navbar />
+      <div className="flex">
         <LeftSidebar />
 
-        <SidebarTrigger />
-        {children}
-      </main>
-    </SidebarProvider>
+        <section className="flex min-h-screen flex-1 flex-col px-6 pb-6 pt-36 max-md:pb-14 sm:px-14">
+          <div className="mx-auto w-full max-w-5xl">{children}</div>
+        </section>
+      </div>
+    </main>
   );
 };
 
