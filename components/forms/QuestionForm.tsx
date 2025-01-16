@@ -10,7 +10,7 @@ import { z } from "zod";
 
 import ROUTES from "@/constants/route";
 import { toast } from "@/hooks/use-toast";
-import { createQuestion } from "@/lib/actions/question.action";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 import { AskQuestionSchema } from "@/lib/validations";
 
 import TagCard from "../cards/TagCard";
@@ -30,7 +30,12 @@ const Editor = dynamic(() => import("@/components/editor"), {
   ssr: false,
 });
 
-const QuestionForm = () => {
+interface Params {
+  question?: Question;
+  isEdit?: boolean;
+}
+
+const QuestionForm = ({ question, isEdit = false }: Params) => {
   const router = useRouter();
   const editorRef = useRef<MDXEditorMethods>(null);
 
@@ -38,9 +43,9 @@ const QuestionForm = () => {
   const form = useForm<z.infer<typeof AskQuestionSchema>>({
     resolver: zodResolver(AskQuestionSchema),
     defaultValues: {
-      title: "",
-      content: "",
-      tags: [],
+      title: question?.title || "",
+      content: question?.content || "",
+      tags: question?.tags.map((tag) => tag.name) || [],
     },
   });
 
@@ -85,6 +90,26 @@ const QuestionForm = () => {
     data: z.infer<typeof AskQuestionSchema>
   ) => {
     startTransition(async () => {
+      if (isEdit && question) {
+        const result = await editQuestion({
+          questionId: question?._id,
+          ...data,
+        });
+        if (!result.success) {
+          toast({
+            title: "Success",
+            description: "Question created successfully",
+          });
+          if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+        } else {
+          toast({
+            title: `Error ${result.status}`,
+            description: result.error?.message || "Something went wrong",
+            variant: "destructive",
+          });
+        }
+        return;
+      }
       const result = await createQuestion(data);
       if (!result.success) {
         toast({
@@ -200,14 +225,14 @@ const QuestionForm = () => {
           >
             {isPending ? (
               <>
+                
                 <LoaderPinwheelIcon className="mr-2 size-4 animate-spin">
                   Submitting
                 </LoaderPinwheelIcon>
               </>
             ) : (
-              <></>
+              <>{isEdit ? "Edit" : "Ask a Question"}</>
             )}
-            Ask A Question
           </Button>
         </div>
       </form>
