@@ -11,7 +11,6 @@ const EditQuestion = async ({ params }: RouteParams) => {
   if (!id) return notFound();
 
   const session = await auth();
-
   if (!session) return redirect("/sign-in");
 
   const { data: question, success } = await getQuestion({ questionId: id });

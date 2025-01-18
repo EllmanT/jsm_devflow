@@ -1,6 +1,6 @@
 "use server";
 
-import mongoose from "mongoose";
+import mongoose, { FilterQuery } from "mongoose";
 
 import Question from "@/database/question.model";
 import TagQuestion from "@/database/tag-question.model";
@@ -12,6 +12,7 @@ import {
   AskQuestionSchema,
   EditQuestionSchema,
   GetQuestionSchema,
+  PaginatedSearchParams,
 } from "../validations";
 
 export async function createQuestion(
@@ -26,36 +27,33 @@ export async function createQuestion(
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
+
   const { title, content, tags } = validationResult.params!;
-
   const userId = validationResult?.session?.user?.id;
-  const session = await mongoose.startSession();
 
+  const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const [question] = await Question.create({
-      title,
-      content,
-      author: userId,
-    });
+    const [question] = await Question.create(
+      [{ title, content, author: userId }],
+      { session }
+    );
 
     if (!question) {
-      throw new Error("Failed to create Question");
+      throw new Error("Failed to create question");
     }
+
     const tagIds: mongoose.Types.ObjectId[] = [];
     const tagQuestionDocuments = [];
 
     for (const tag of tags) {
       const existingTag = await Tag.findOneAndUpdate(
         { name: { $regex: new RegExp(`^${tag}$`, "i") } },
-        { $setOnInsert: { name: tag }, $inc: { question: 1 } },
-        {
-          upsert: true,
-          new: true,
-          session,
-        }
+        { $setOnInsert: { name: tag }, $inc: { questions: 1 } },
+        { upsert: true, new: true, session }
       );
+
       tagIds.push(existingTag._id);
       tagQuestionDocuments.push({
         tag: existingTag._id,
@@ -64,12 +62,15 @@ export async function createQuestion(
     }
 
     await TagQuestion.insertMany(tagQuestionDocuments, { session });
+
     await Question.findByIdAndUpdate(
       question._id,
       { $push: { tags: { $each: tagIds } } },
       { session }
     );
+
     await session.commitTransaction();
+
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
   } catch (error) {
     await session.abortTransaction();
@@ -102,7 +103,7 @@ export async function editQuestion(
     const question = await Question.findById(questionId).populate("tags");
 
     if (!question) throw new Error("Question not found");
-    if (question.author.toString()! == userId) {
+    if (question.author.toString() !== userId) {
       throw new Error("Unauthorized");
     }
 
@@ -112,16 +113,21 @@ export async function editQuestion(
       await question.save({ session });
     }
     const tagsToAdd = tags.filter(
-      (tag) => !question.tags.includes(tag.toLowerCase())
+      (tag) =>
+        !question.tags.some((t: ITagDoc) =>
+          t.name.toLowerCase().includes(tag.toLowerCase())
+        )
     );
     const tagsToRemove = question.tags.filter(
-      (tag: ITagDoc) => !tags.includes(tag.name.toLowerCase())
+      (tag: ITagDoc) =>
+        !tags.some((t) => t.toLowerCase() === tag.name.toLowerCase())
     );
+
     const newTagDocuments = [];
     if (tagsToAdd.length > 0) {
       for (const tag of tagsToAdd) {
         const existingTag = await Tag.findOneAndUpdate(
-          { name: { $regex: new RegExp(`^${tag}$`, "i") } },
+          { name: { $regex: `^${tag}$`, $options: "i" } },
           { $setOnInsert: { name: tag }, $inc: { question: 1 } },
           {
             upsert: true,
@@ -151,7 +157,10 @@ export async function editQuestion(
       );
 
       question.tags = question.tags.filter(
-        (tagId: mongoose.Types.ObjectId) => !tagsToRemove.includes(tagId)
+        (tag: mongoose.Types.ObjectId) =>
+          !tagIdsToRemove.some((id: mongoose.Types.ObjectId) =>
+            id.equals(tag._id)
+          )
       );
     }
     if (newTagDocuments.length > 0) {
@@ -184,10 +193,76 @@ export async function getQuestion(
 
   try {
     const question = await Question.findById(questionId).populate("tags");
-    if (question) {
+    if (!question) {
       throw new Error("Question not found");
     }
     return { success: true, data: JSON.parse(JSON.stringify(question)) };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getQuestions(
+  params: PaginatedSearchParams
+): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
+  const validationResult = await action({
+    params,
+    schema: PaginatedSearchParams,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { page = 1, pageSize = 10, query, filter } = params;
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = Number(pageSize);
+
+  const filterQuery: FilterQuery<typeof Question> = {};
+
+  if (filter === "recommended") {
+    return { success: true, data: { questions: [], isNext: false } };
+  }
+
+  if (query) {
+    filterQuery.$or = [
+      { title: { $regex: new RegExp(query, "i") } },
+      { content: { $regex: new RegExp(query, "i") } },
+    ];
+  }
+
+  let sortCriteria = {};
+  switch (filter) {
+    case "newest":
+      sortCriteria = { createdAt: -1 };
+      break;
+    case "unanswered":
+      filterQuery.answers = 0;
+      sortCriteria = { createdAt: -1 };
+      break;
+
+    case "popular":
+      sortCriteria = { upvotes: -1 };
+      break;
+    default:
+      sortCriteria = { createdAt: -1 };
+      break;
+  }
+  try {
+    const totalQuestions = await Question.countDocuments(filterQuery);
+    const questions = await Question.find(filterQuery)
+      .populate("tags", "name")
+      .populate("author", "name image")
+      .lean()
+      .sort(sortCriteria)
+      .skip(skip)
+      .limit(limit);
+
+    const isNext = totalQuestions > skip + questions.length;
+    return {
+      success: true,
+      data: { questions: JSON.parse(JSON.stringify(questions)), isNext },
+    };
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
