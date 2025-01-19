@@ -149,7 +149,7 @@ export const SignWithOauthSchema = z.object({
   }),
 });
 
-export const PaginatedSearchParams = z.object({
+export const PaginatedSearchParamsSchema = z.object({
   page: z.number().int().positive().default(1),
   pageSize: z.number().int().positive().default(10),
   query: z.string().optional(),

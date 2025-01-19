@@ -12,7 +12,7 @@ import {
   AskQuestionSchema,
   EditQuestionSchema,
   GetQuestionSchema,
-  PaginatedSearchParams,
+  PaginatedSearchParamsSchema,
 } from "../validations";
 
 export async function createQuestion(
@@ -207,7 +207,7 @@ export async function getQuestions(
 ): Promise<ActionResponse<{ questions: Question[]; isNext: boolean }>> {
   const validationResult = await action({
     params,
-    schema: PaginatedSearchParams,
+    schema: PaginatedSearchParamsSchema,
   });
 
   if (validationResult instanceof Error) {
