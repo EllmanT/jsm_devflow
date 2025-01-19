@@ -1,11 +1,11 @@
 import React from "react";
 
-import { getTags } from "@/lib/actions/tag.action";
+import TagCard from "@/components/cards/TagCard";
+import DataRenderer from "@/components/DataRenderer";
 import LocalSearch from "@/components/search/LocalSearch";
 import ROUTES from "@/constants/route";
-import DataRenderer from "@/components/DataRenderer";
 import { EMPTY_TAGS } from "@/constants/states";
-import TagCard from "@/components/cards/TagCard";
+import { getTags } from "@/lib/actions/tag.action";
 
 const Tags = async ({ searchParams }: RouteParams) => {
   const { page, pageSize, query, filter } = await searchParams;
@@ -18,35 +18,32 @@ const Tags = async ({ searchParams }: RouteParams) => {
   const { tags } = data || {};
 
   console.log("Tags", JSON.stringify(tags, null, 2));
-  return <>
-  <h1 className="h1-bold text-dark100_light900 text-3xl">
-    Tags
-  </h1>
-  <section className="mt-11">
-      <LocalSearch route={ROUTES.TAGS}
-      imgSrc="/icons/search.svg"
-      placeholder="Search tags..."
-    otherClasses="flex-1"
-      
+  return (
+    <>
+      <h1 className="h1-bold text-dark100_light900 text-3xl">Tags</h1>
+      <section className="mt-11">
+        <LocalSearch
+          route={ROUTES.TAGS}
+          imgSrc="/icons/search.svg"
+          placeholder="Search tags..."
+          otherClasses="flex-1"
+        />
+      </section>
+      <DataRenderer
+        success={success}
+        error={error}
+        data={tags}
+        empty={EMPTY_TAGS}
+        render={(tags) => (
+          <div className="mt-10 flex w-full flex-wrap gap-4">
+            {tags.map((tag) => (
+              <TagCard key={tag._id} {...tag} />
+            ))}
+          </div>
+        )}
       />
-  </section>
-  <DataRenderer
-  success={success}
-  error={error}
-  data={tags}
-  empty={EMPTY_TAGS}
-  render={(tags)=>(
-    <div className="mt-10 flex w-full flex-wrap gap-4">
-{tags.map((tag)=>(
-  <TagCard
-  key={tag._id}
-  {...tag}
-  />
-))}
-    </div>
-  )}
-  />
-  </>
+    </>
+  );
 };
 
 export default Tags;

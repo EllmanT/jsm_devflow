@@ -21,10 +21,13 @@ interface CreateQuestionParams {
   tags: string[];
 }
 
-interface editQuestionParams extends CreateQuestionParams{
-  questionId:string;
+interface editQuestionParams extends CreateQuestionParams {
+  questionId: string;
 }
 
-interface getQuestionParams{
-  questionId:string
+interface getQuestionParams {
+  questionId: string;
+}
+interface GetTagQuestionsParams extends Omit<PaginatedSearchParams, "filter"> {
+  tagId: string;
 }
