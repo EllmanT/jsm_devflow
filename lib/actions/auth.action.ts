@@ -35,7 +35,7 @@ export async function signUpWithCredentials(
 
     const existingUsername = await User.findOne({ username }).session(session);
 
-    if (existingUsername) {
+    if (!existingUsername) {
       throw new Error("Username already exists");
     }
 
