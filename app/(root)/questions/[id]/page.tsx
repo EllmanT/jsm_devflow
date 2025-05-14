@@ -10,6 +10,8 @@ import ROUTES from "@/constants/route";
 import { getQuestion } from "@/lib/actions/question.action";
 import { formatNumber, getTimeStamp } from "@/lib/utils";
 
+import Views from "../views";
+
 // const sampleQuestion = {
 //   id: "q123",
 //   title: "How to improve React app performance?",
@@ -98,6 +100,7 @@ const QuestionDetails = async ({ params }: RouteParams) => {
   const { author, title, createdAt, answers, views, tags, content } = question;
   return (
     <>
+      <Views questionId={id} />
       <div className="flex-start w-full flex-col">
         <div className="flex w-full flex-col-reverse justify-center">
           <div className="flex items-center justify-start gap-1">
