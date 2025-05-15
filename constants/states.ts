@@ -1,6 +1,5 @@
 import ROUTES from "./route";
 
-
 export const DEFAULT_EMPTY = {
   title: "No Data Found",
   message:
@@ -47,4 +46,9 @@ export const EMPTY_COLLECTIONS = {
     text: "Save to Collection",
     href: ROUTES.COLLECTION,
   },
+};
+
+export const EMPTY_ANSWERS = {
+  title: "No Answers Found",
+  message: "THe answer board is empty. Feel free to share your answer.",
 };
