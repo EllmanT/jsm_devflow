@@ -43,10 +43,17 @@ interface RouteParams {
   searchParams: Promise<Record<string, string>>;
 }
 
-interface PaginatedSearchParams{
-  page?:number;
-  pageSize?:number;
-  query?:string;
-  filter?:string;
-  sort?:string;
+interface PaginatedSearchParams {
+  page?: number;
+  pageSize?: number;
+  query?: string;
+  filter?: string;
+  sort?: string;
+}
+
+interface Answer {
+  _id: string;
+  author: Author;
+  content: string;
+  createAt: Date;
 }
