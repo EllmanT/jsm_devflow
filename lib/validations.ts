@@ -170,3 +170,7 @@ export const AnswerSchema = z.object({
     .string()
     .min(5, { message: "Answer has to be more that 5 characters" }),
 });
+
+export const AnswerServerSchema = AnswerSchema.extend({
+  questionId: z.string().min(1, { message: "Question ID is required" }),
+});
