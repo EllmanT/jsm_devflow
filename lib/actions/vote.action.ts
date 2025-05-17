@@ -6,15 +6,15 @@ import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
 import handleError from "../handlers/error";
-import { CreateVoteSchema } from "../validations";
+import { CreateVoteSchema, UpdateVoteCountSchema } from "../validations";
 
 export async function updateVoteCount(
-  params: UpdateVoteParams,
+  params: UpdateVoteCountParams,
   session?: ClientSession
 ): Promise<ActionResponse> {
   const validationResult = await action({
     params,
-    schema: UpdateVoteSchema,
+    schema: UpdateVoteCountSchema,
   });
 
   if (validationResult instanceof Error) {
