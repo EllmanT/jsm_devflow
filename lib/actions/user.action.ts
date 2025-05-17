@@ -33,7 +33,7 @@ export async function getUsers(params: PaginatedSearchParams): Promise<
   if (query) {
     filterQuery.$or = [
       { name: { $regex: query, $options: "i" } },
-      { email: { $regex: query, options: "i" } },
+      { email: { $regex: query, $options: "i" } },
     ];
   }
 
