@@ -1,7 +1,9 @@
 "use server";
 
 import mongoose, { ClientSession } from "mongoose";
+import { revalidatePath } from "next/cache";
 
+import ROUTES from "@/constants/route";
 import { Answer, Question, Vote } from "@/database";
 
 import action from "../handlers/action";
@@ -55,12 +57,14 @@ export async function createVote(
   const validationResult = await action({
     params,
     schema: CreateVoteSchema,
+    authorize: true,
   });
 
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;
   }
-
+  console.log("validation");
+  console.log(validationResult);
   const { targetId, targetType, voteType } = validationResult.params!;
 
   const userId = validationResult.session?.user?.id;
@@ -72,6 +76,7 @@ export async function createVote(
   session.startTransaction();
 
   try {
+    console.log("here 1");
     const existingVote = await Vote.findOne({
       author: userId,
       actionId: targetId,
@@ -79,28 +84,49 @@ export async function createVote(
     }).session(session);
 
     if (existingVote) {
+      console.log("here 2");
+
       if (existingVote.voteType === voteType) {
+        console.log("here 3");
+
         await Vote.deleteOne({ _id: existingVote._id }).session(session);
         await updateVoteCount(
           { targetId, targetType, voteType, change: -1 },
           session
         );
       } else {
+        console.log("here 4");
+
         await Vote.findByIdAndUpdate(
           existingVote._id,
           { voteType },
           { view: true, session }
         );
+        console.log("here 5");
+
         await updateVoteCount(
           { targetId, targetType, voteType, change: 1 },
           session
         );
       }
     } else {
+      console.log("here 6");
+
       // if user has not voted create a new vote for the first time
-      await Vote.create([{ targetId, targetType, voteType, change: 1 }], {
-        session,
-      });
+      await Vote.create(
+        [
+          {
+            author: userId,
+            actionId: targetId,
+            actionType: targetType,
+            voteType,
+          },
+        ],
+        {
+          session,
+        }
+      );
+      console.log("here 4");
 
       await updateVoteCount(
         { targetId, targetType, voteType, change: 1 },
@@ -109,6 +135,7 @@ export async function createVote(
     }
     await session.commitTransaction();
     session.endSession();
+    revalidatePath(ROUTES.QUESTION(targetId));
     return { success: true };
   } catch (error) {
     await session.abortTransaction();

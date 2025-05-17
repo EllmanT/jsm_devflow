@@ -1,63 +1,97 @@
+"use client";
 import Image from "next/image";
 import { useSession } from "next-auth/react";
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 
 import { toast } from "@/hooks/use-toast";
+import { createVote } from "@/lib/actions/vote.action";
 import { formatNumber } from "@/lib/utils";
 
 interface Props {
+  targetType: "question" | "answer";
+  targetId: string;
   upvotes: number;
   downvotes: number;
-  hasupVoted: boolean;
-  hasdownVoted: boolean;
+  hasVotedPromise: Promise<ActionResponse<HasVotedResponse>>;
 }
-const Votes = ({ upvotes, downvotes, hasupVoted, hasdownVoted }: Props) => {
-  const [isLoading, setIsLoading] = useState(false);
-
+const Votes = ({
+  upvotes,
+  downvotes,
+  hasVotedPromise,
+  targetId,
+  targetType,
+}: Props) => {
   const session = useSession();
   const userId = session.data?.user?.id;
+
+  const { success, data } = use(hasVotedPromise);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { hasUpvoted, hasDownvoted } = data || {};
+
   const handleVote = async (voteType: "upvote" | "downvote") => {
+    console.log("In the handle vote");
     if (!userId) {
       toast({
         title: "Please login to vote",
         description: "Only logged in users can vote",
       });
+    }
+    setIsLoading(true);
+    console.log("In  here now 2");
 
-      setIsLoading(true);
+    try {
+      console.log("In  here now the create Vote");
 
-      try {
+      const result = await createVote({
+        targetId,
+        targetType,
+        voteType,
+      });
+
+      if (!result.success) {
+        toast({
+          title: "Failed to vote",
+          description: result.error?.message,
+          variant: "destructive",
+        });
+
+        console.log("heree");
+      } else {
         const successMessage =
           voteType === "upvote"
-            ? `Upvote ${!hasupVoted ? "added" : "remooved"} successfully`
-            : `Downvote ${!hasdownVoted ? "added" : "remonved"} successfully`;
+            ? `Upvote ${!hasUpvoted ? "added" : "remooved"} successfully`
+            : `Downvote ${!hasDownvoted ? "added" : "remonved"} successfully`;
 
         toast({
           title: successMessage,
           description: "Your vote has been recorded",
         });
-      } catch (error) {
-        console.log(error);
-        toast({
-          title: "Failed to vote",
-          description: "An error occured while voting",
-          variant: "destructive",
-        });
-      } finally {
-        setIsLoading(false);
       }
+    } catch (error) {
+      console.log(error);
+      toast({
+        title: "Failed to vote",
+        description: "An error occured while voting",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
     <div className="flex-center gap-2.5">
       <div className="flex-center gap-1.5">
         <Image
-          src={hasupVoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"}
+          src={
+            success && hasUpvoted ? "/icons/upvoted.svg" : "/icons/upvote.svg"
+          }
           width={18}
           height={18}
           alt="upvote"
           className={`cursor-pointer ${isLoading && "opacity-50"}`}
           aria-label="Upvote"
-          onClick={() => isLoading && handleVote("upvote")}
+          onClick={() => !isLoading && handleVote("upvote")}
         />
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
@@ -68,13 +102,17 @@ const Votes = ({ upvotes, downvotes, hasupVoted, hasdownVoted }: Props) => {
       </div>
       <div className="flex-center gap-1.5">
         <Image
-          src={hasdownVoted ? "/icons/downvoted.svg" : "/icons/downvote.svg"}
+          src={
+            success && hasDownvoted
+              ? "/icons/downvoted.svg"
+              : "/icons/downvote.svg"
+          }
           width={18}
           height={18}
           alt="downvote"
           className={`cursor-pointer ${isLoading && "opacity-50"}`}
           aria-label="Downvote"
-          onClick={() => isLoading && handleVote("downvote")}
+          onClick={() => !isLoading && handleVote("downvote")}
         />
 
         <div className="flex-center background-light700_dark400 min-w-5 rounded-sm p-1">
