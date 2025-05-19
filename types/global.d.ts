@@ -91,3 +91,9 @@ interface User {
   reputation?: string;
   createdAt: Date;
 }
+
+interface BadgeCount {
+  GOLD: number;
+  SILVER: number;
+  BRONZE: number;
+}

@@ -15,7 +15,7 @@ const RightSidebar = async () => {
     { success: tagSuccess, data: topTags, error: tagsError },
   ] = await Promise.all([getHotQuestion(), getTopTags()]);
   return (
-    <section className="custom-scrollbar background-light900_dark200 light-border sticky right-0 top-0 flex h-screen w-[266px]  flex-col gap-6 overflow-y-auto border-l p-6 pt-28 shadow-light-300 dark:shadow-none ">
+    <section className="custom-scrollbar background-light900_dark200 light-border sticky right-0 top-0 flex h-screen w-[350px] flex-col gap-6 overflow-y-auto border-l p-6 pt-36 shadow-light-300 dark:shadow-none max-xl:hidden">
       <div>
         <h3 className="h3-bold text-dark200_light900">Top Questions</h3>
         <DataRenderer
