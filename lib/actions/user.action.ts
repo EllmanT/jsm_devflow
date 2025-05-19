@@ -79,7 +79,7 @@ export async function getUsers(params: PaginatedSearchParams): Promise<
 
 export async function getUser(params: GetUserParams): Promise<
   ActionResponse<{
-    user: typeof User;
+    user: User;
     totalQuestions: number;
     totalAnswers: number;
   }>
@@ -110,8 +110,6 @@ export async function getUser(params: GetUserParams): Promise<
         totalAnswers,
       },
     };
-
-    if (!user) throw new Error();
   } catch (error) {
     return handleError(error) as ErrorResponse;
   }
