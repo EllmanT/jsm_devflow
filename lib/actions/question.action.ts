@@ -2,6 +2,7 @@
 
 import mongoose, { FilterQuery } from "mongoose";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 
 import { Answer, Collection, Vote } from "@/database";
 import Question from "@/database/question.model";
@@ -19,6 +20,7 @@ import {
   incrementViewsSchema,
   PaginatedSearchParamsSchema,
 } from "../validations";
+import { createInteraction } from "./interaction.action";
 
 export async function createQuestion(
   params: CreateQuestionParams
@@ -73,6 +75,15 @@ export async function createQuestion(
       { $push: { tags: { $each: tagIds } } },
       { session }
     );
+    // log the interaction
+    after(async () => {
+      await createInteraction({
+        action: "post",
+        actionId: question._id.toString(),
+        actionTarget: "question",
+        authorId: userId as string,
+      });
+    });
 
     await session.commitTransaction();
 
