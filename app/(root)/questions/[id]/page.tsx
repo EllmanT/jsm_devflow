@@ -137,6 +137,7 @@ const QuestionDetails = async ({ params, searchParams }: RouteParams) => {
             <UserAvatar
               id={author._id}
               name={author.name}
+              imageUrl={author.image}
               className="size-[20px]"
               fallbackClassName="text-[10px]"
             />
