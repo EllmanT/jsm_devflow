@@ -19,6 +19,7 @@ import {
   getUser,
   getUserQuestions,
   getUsersAnswers,
+  getUserStats,
   getUserTopTags,
 } from "@/lib/actions/user.action";
 
@@ -38,8 +39,11 @@ const page = async ({ params, searchParams }: RouteParams) => {
         <div className="h1-bold text-dark100_light900">{error?.message}</div>
       </div>
     );
+  const { user } = data!;
 
-  const { user, totalQuestions, totalAnswers } = data!;
+  const { data: userStats } = await getUserStats({ userId: id });
+  console.log("user stats");
+  console.log(userStats);
   const {
     success: userQuestionsSuccess,
     data: userQuestions,
@@ -129,13 +133,9 @@ const page = async ({ params, searchParams }: RouteParams) => {
       </section>
 
       <Stats
-        totalAnswers={totalAnswers}
-        totalQuestions={totalQuestions}
-        badges={{
-          GOLD: 0,
-          SILVER: 0,
-          BRONZE: 0,
-        }}
+        totalQuestions={userStats?.totalQuestions || 0}
+        totalAnswers={userStats?.totalAnswers || 0}
+        badges={userStats?.badges || { GOLD: 0, SILVER: 0, BRONZE: 0 }}
         reputationPoints={user.reputation || 0}
       />
       <section className="mt-10 flex gap-10">
