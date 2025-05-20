@@ -232,5 +232,5 @@ export const DeleteQuestionSchema = z.object({
 });
 
 export const DeleteAnswerSchema = z.object({
-  questionId: z.string().min(1, "Answer ID is required"),
+  answerId: z.string().min(1, "Answer ID is required"),
 });
