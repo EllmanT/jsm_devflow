@@ -106,7 +106,7 @@ const page = async ({ params, searchParams }: RouteParams) => {
                 />
               )}
               {location && (
-                <ProfileLink imageUrl="/icons/location.svg" title="Location" />
+                <ProfileLink imageUrl="/icons/location.svg" title={location} />
               )}
 
               <ProfileLink
