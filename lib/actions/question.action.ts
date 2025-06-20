@@ -278,6 +278,8 @@ export async function getQuestions(
       .limit(limit);
 
     const isNext = totalQuestions > skip + questions.length;
+
+    console.log("questions here,", questions);
     return {
       success: true,
       data: { questions: JSON.parse(JSON.stringify(questions)), isNext },

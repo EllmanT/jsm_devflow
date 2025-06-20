@@ -26,7 +26,7 @@ const Home = async ({ searchParams }: SearchParams) => {
   });
 
   const { questions, isNext } = data || {};
-
+  console.log(questions);
   // const filteredQuestions = questions.filter((question) => {
   //   const matchesQuery = question.title
   //     .toLowerCase()
